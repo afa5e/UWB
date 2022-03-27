@@ -55,17 +55,17 @@ void setup() {
 }
 
 void loop() {
-  if(hasNewUWBdata==1 && meas < 10){
+  if(hasNewUWBdata==1/* && meas < 10*/){
     hasNewUWBdata=0;
     computeLocation();
     meas = meas + 1;
   }
-  buttonState = digitalRead(2);
+  /*buttonState = digitalRead(2);
   if (buttonState == 0) {
     meas = 0;
     Serial.println("Reset");
     delay(100);
-  }
+  }*/
 
 }
 

@@ -47,6 +47,5 @@
 MatrixMathExample.ino
 *.properties
 LICENSE
-project.checksum
-idedata.json
-.pio\build\megaatmega2560\idedata.json
+*.checksum
+*.json

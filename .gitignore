@@ -49,3 +49,5 @@ MatrixMathExample.ino
 LICENSE
 *.checksum
 *.json
+*.java
+*.class

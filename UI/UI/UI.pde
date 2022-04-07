@@ -1,8 +1,17 @@
+import processing.serial.*;
+Serial serialPort;
+
+int serialData = 0;
+
 Rover rover = new Rover(150, 825);
 
 void setup() {
   size(983,906);
   frameRate(60);
+
+  printArray(Serial.list());
+  serialPort = new Serial(this, Serial.list()[0], 9600);
+  serialPort.bufferUntil(0xFE);
 
   PImage img;
   img = loadImage("bg.png");
@@ -40,24 +49,51 @@ void keyPressed() {
   y = 0;
 
   if (key == 'w') {
-    y = -10;
+    //Forward 0xEE
+    serialPort.write(0x);
+    y = -1;
   } else if (key == 's') {
-    y = 10;
+    //Back 0xEF
+    serialPort.write(0x);
+    y = 1;
   } else if (key == 'a') {
-    x = -10;
+    //Left 0xDE
+    serialPort.write(0x);
+    x = -1;
   } else if (key == 'd') {
-    x = 10;
-  } else if (key == 'q') {
-    println("lowering");
-  } else if (key == 'e') {
-    println("raising");
-  } else if (key == 'r') {
-    println("Opening rear door");
-  } else if (key == 'f') {
-    println("closing rear door");
+    //Right 0xDF
+    serialPort.write(0x);
+    x = 1;
+  } else if (key == 'd') {
+    //Arm Up 0xCE
+    serialPort.write(0x);
+    x = 1;
+  } else if (key == 'd') {
+    //Arm Down 0xCF
+    serialPort.write(0x);
+    x = 1;
+  } else if (key == 'd') {
+    //Door up 0xBE
+    serialPort.write(0x);
+    x = 1;
+  } else if (key == 'd') {
+    //Door down 0xBF
+    serialPort.write(0x);
+    x = 1;
+  } else if (key == 'd') {
+    //Brush on 0xAE
+    serialPort.write(0x);
+    x = 1;
+  } else if (key == 'd') {
+    //Brush off 0xAF
+    serialPort.write(0x);
+    x = 1;
   } else {
     println("invalid");
   }
-
   rover.update(x, y);
+}
+
+void serialEvent() {
+
 }

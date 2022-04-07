@@ -1,0 +1,6 @@
+ 
+MovY	Forward/Back	3	SLIDER	Y Axis	0	1.0	0.0
+MovX	Left/Right	3	SLIDER	X Axis	0	1.0	0.0
+Arm	Arm Up/Down	3	SLIDER	Y Rotation	0	1.0	0.0
+Brush	Brush speed	3	SLIDER	Z Axis	0	1.0	0.0
+Door	Door open/close	1	BUTTON	Button 6	0	0.0	0.0

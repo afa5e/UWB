@@ -1,3 +1,11 @@
+<<<<<<< Updated upstream
+=======
+import net.java.games.input.*;
+import org.gamecontrolplus.*;
+import org.gamecontrolplus.gui.*;
+import g4p_controls.*;
+ControlDevice cont;
+ControlIO control;
 Rover rover = new Rover(150, 825);
 
 void setup() {

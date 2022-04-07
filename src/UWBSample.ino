@@ -49,25 +49,19 @@ void setup() {
   Serial.begin(115200);
   //UWB defaults to 1Hz instead of 5Hz as seen in the presentation.
   Serial2.begin(115200);
-  //pinMode(2, INPUT_PULLUP);
+  //HC-06
+  Serial3.begin(9600);
+
   Serial.println("Ready");
   Serial.flush();
 
 }
 
 void loop() {
-  if(hasNewUWBdata == 1/* && meas < 10*/){
+  if (hasNewUWBdata == 1/* && meas < 10*/) {
     hasNewUWBdata = 0;
     computeLocation();
-    meas = meas + 1;
   }
-  /*buttonState = digitalRead(2);
-  if (buttonState == 0) {
-    meas = 0;
-    Serial.println("Reset");
-    delay(100);
-  }*/
-
 }
 
 /**
@@ -77,9 +71,14 @@ void computeLocation() {
   double Matrix_tmp[MaxObsevationNum][4];
   int counter = 0;
   for (int i = 0; i<ObservationNum; i++) {
-    /*Serial.print(ObserverdID[i]);Serial.print(": ");*/Serial.println(ObservedRange[i]);
-    /* Print distance
-    Serial.println(ObservedRange[i] * 0.92 - 0.7);*/
+    //USB
+    /*Serial.print(ObserverdID[i]);*///Serial.print("Raw: ");Serial.println(ObservedRange[i]);
+    //Serial.print("Distance: ");Serial.println(ObservedRange[i] * 0.61 - 0.13);
+
+    //Bluetooth
+    Serial3.write("Raw: ");Serial3.println(ObservedRange[i]);
+    Serial3.print("Distance: ");Serial3.println(ObservedRange[i] * 0.61 - 0.13);
+
     for (int j = 0; j<AnchorNum; j++) {
       if (ObserverdID[i] == AnchorID[j]) {
         Matrix_tmp[counter][0] = AnchorXYZ[j][0];  //X
@@ -131,7 +130,7 @@ void computeLocation() {
       loop++;
     }
 
-    if(loop <20){
+    if(loop < 20){
        /* USER CODE BEGIN */
 
        /*Add code here to pass the positioning result to your application*/

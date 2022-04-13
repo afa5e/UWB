@@ -1,0 +1,6 @@
+xBoxController
+forward	forward	3	SLIDER	Y Axis	0	1.0	0.0
+turn	turn	3	SLIDER	X Axis	0	1.0	0.0
+door	door	1	BUTTON	Button 6	0	0.0	0.0
+arm	arm	3	SLIDER	Y Rotation	0	1.0	0.0
+brush	brush	3	SLIDER	Z Axis	0	1.0	0.0

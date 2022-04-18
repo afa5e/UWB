@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <Servo.h>
 #include "MatrixMath.h"
 
 #define PACKAGE_HEADER      0xFF
@@ -15,6 +16,29 @@
 #define BLUETOOTH_HEADER 255
 #define BLUETOOTH_TAIL 254
 
+//Drive motor controller
+#define MOTOR_L_FORW_EN 46
+#define MOTOR_L_BACK_EN 47
+#define MOTOR_L_PWM 44
+#define MOTOR_R_FORW_EN 48
+#define MOTOR_R_BACK_EN 49
+#define MOTOR_R_PWM 45
+
+//Door and brush motor controller
+#define MOTOR_D_FORW_EN 46
+#define MOTOR_D_BACK_EN 47
+#define MOTOR_D_PWM 44
+#define MOTOR_B_FORW_EN 48
+#define MOTOR_B_BACK_EN 49
+#define MOTOR_B_PWM 45
+
+//Talon SR arm motor controller
+#define NEVEREST_PWM 2
+
+//Door lock servo
+#define SERVO_PIN 30
+Servo doorServo;
+
 #define bufferSize      300
 byte uartBuffer[bufferSize];
 int uartBufferCursor = 0;
@@ -24,6 +48,7 @@ int bluetoothBuffer[bufferSize];
 int bluetoothBufferCursor = 0;
 byte data;
 int forward, back, turn, arm, door, brush;
+int left, right;
 byte sendByte;
 int xM, xCm, yM, yCm;
 
@@ -47,6 +72,20 @@ int AnchorID[] = {2820,2819,2816,2821};
 /*******************************************************************************/
 
 void setup() {
+
+  pinMode(MOTOR_R_FORW_EN, OUTPUT);
+  pinMode(MOTOR_R_BACK_EN, OUTPUT);
+  pinMode(MOTOR_R_PWM, OUTPUT);
+  pinMode(MOTOR_L_FORW_EN, OUTPUT);
+  pinMode(MOTOR_L_BACK_EN, OUTPUT);
+  pinMode(MOTOR_L_PWM, OUTPUT);
+  pinMode(MOTOR_B_FORW_EN, OUTPUT);
+  pinMode(MOTOR_B_BACK_EN, OUTPUT);
+  pinMode(MOTOR_B_PWM, OUTPUT);
+  pinMode(MOTOR_D_FORW_EN, OUTPUT);;
+  pinMode(MOTOR_D_BACK_EN, OUTPUT);
+  pinMode(MOTOR_D_PWM, OUTPUT);
+  pinMode(NEVEREST_PWM, OUTPUT);
 
   /* UWb would use the only UART on UNO, However, it only uses RX pin
      you can still use Serial.print() to print information
@@ -80,9 +119,10 @@ void computeLocation() {
   int counter = 0;
   for (int i = 0; i < ObservationNum; i++) {
     //USB
-    /*Serial.print(ObserverdID[i]);*///Serial.print("Raw: ");Serial.println(ObservedRange[i]);
+    //Serial.print(ObserverdID[i]);*///Serial.print("Raw: ");Serial.println(ObservedRange[i]);
     //Serial.print("Distance: ");Serial.println(ObservedRange[i] * 0.61 - 0.13);
 
+    //Begin test
     //Splitting into two bytes for m and cm
     xM = (int) ObservedRange[i];
     xCm = (int) ((ObservedRange[i] - xM) * 100);
@@ -94,6 +134,7 @@ void computeLocation() {
       Serial3.write(coord[sendByte]);
     }
 
+    //end test code
     for (int j = 0; j < AnchorNum; j++) {
       if (ObserverdID[i] == AnchorID[j]) {
         Matrix_tmp[counter][0] = AnchorXYZ[j][0];  //X
@@ -162,7 +203,7 @@ void computeLocation() {
       byte coord[] = {0xFF, 0xFF, 0x0F, 0x0F, xM, xCm, 0xF0, 0xF0, yM, yCm, 0xFE};
 
       for (sendByte = 0; sendByte < sizeof(coord); sendByte = sendByte + 1) {
-        //Serial3.print(coord[sendByte]);
+        Serial3.print(coord[sendByte]);
       }
 
       /* USER CODE END  */
@@ -173,8 +214,9 @@ void computeLocation() {
       Serial.println("Algorithm did not converge");
     }
     ObservationNum=0;
+  } else {
+    Serial.println("Not enough measurements");
   }
-  /*Serial.println("Not enough measurements");*/
   ObservationNum=0;
   return;
 }
@@ -247,9 +289,9 @@ void bluetoothDecode() {
       data = bluetoothBuffer[tmpCursor + 2];
       turn = data - 127;
     } else if (bluetoothBuffer[tmpCursor] == 207 && bluetoothBuffer[tmpCursor] == bluetoothBuffer[tmpCursor + 1]) {
-      //arm velocity
+      //arm velocity, taken into account talon calibration
       data = bluetoothBuffer[tmpCursor + 2];
-      arm = data - 127;
+      arm = data/4 + 160;
     } else if (bluetoothBuffer[tmpCursor] == 174 && bluetoothBuffer[tmpCursor] == bluetoothBuffer[tmpCursor + 1]) {
       //door position open: 0x00 and close: 0xFF
       data = bluetoothBuffer[tmpCursor + 2];
@@ -273,7 +315,7 @@ void bluetoothDecode() {
       break;
     }
 
-    Serial.print(forward);Serial.print(", ");Serial.print(turn);Serial.print(", ");Serial.print(arm);Serial.print(", ");Serial.print(door);Serial.print(", ");Serial.println(brush);
+    //Serial.print(forward);Serial.print(", ");Serial.print(turn);Serial.print(", ");Serial.print(arm);Serial.print(", ");Serial.print(door);Serial.print(", ");Serial.println(brush);
   }
 }
 
@@ -312,5 +354,37 @@ void serialEvent3() {
       memset(bluetoothBuffer, 0, sizeof(bluetoothBuffer));
     }
   }
-  //Include PWM control from received commands in loop()?
+
+  //Talon SR PWM 0, 191 and 255 turns off motor, 128 is max speed clockwise, 254 max anticlockwise
+  analogWrite(NEVEREST_PWM, arm);
+
+  left = forward + 1/2 * turn;
+  right = forward - 1/2 * turn;
+
+  if (left >= 0) {
+    digitalWrite(MOTOR_L_FORW_EN, HIGH);
+    digitalWrite(MOTOR_L_BACK_EN, LOW);
+  } else {
+    digitalWrite(MOTOR_L_FORW_EN, LOW);
+    digitalWrite(MOTOR_L_BACK_EN, HIGH);
+  }
+  analogWrite(MOTOR_L_PWM, left);
+
+  if (right >= 0) {
+    digitalWrite(MOTOR_R_FORW_EN, HIGH);
+    digitalWrite(MOTOR_R_BACK_EN, LOW);
+  } else {
+    digitalWrite(MOTOR_R_FORW_EN, LOW);
+    digitalWrite(MOTOR_R_BACK_EN, HIGH);
+  }
+  analogWrite(MOTOR_R_PWM, right);
+
+  if (brush >= 0) {
+    digitalWrite(MOTOR_B_FORW_EN, HIGH);
+    digitalWrite(MOTOR_B_BACK_EN, LOW);
+  } else {
+    digitalWrite(MOTOR_B_FORW_EN, LOW);
+    digitalWrite(MOTOR_B_BACK_EN, HIGH);
+  }
+  analogWrite(MOTOR_B_PWM, arm);
 }

@@ -9,16 +9,15 @@ int bufferSize = 300;
 int[] bluetoothBuffer = new int[300];
 int bluetoothBufferCursor = 0;
 
-
-import net.java.games.input.*;
-import org.gamecontrolplus.*;
-import org.gamecontrolplus.gui.*;
-import g4p_controls.*;
-ControlDevice cont;
-ControlIO control;
-
 float brushVel, count;
 int door = 0;
+int moveX, moveY, armVel, brushAccel;
+
+//CHange 0.5 to any float between 0 and 1 to set max speed
+int moveXMax = 0.5; //max forward/reverse speed
+int turnMax = 0.5; //turn speed
+int armMax = 0.5; //arm raise/lower speed
+int brushMax = 0.5; //brush acceleration
 
 final float moveMap = 255;
 final float armMap = 255;
@@ -46,17 +45,6 @@ public void setup() {
   //serialPort.bufferUntil(254);
   println("Serial connected");
 
-  control = ControlIO.getInstance(this);
-  cont = control.getMatchedDevice("xBoxController");
-
-  //Checks if controller is connected
-  if (cont == null) {
-    println("No device found");
-    System.exit(-1);
-  } else {
-    println("Controller detected, ready.");
-  }
-
   PImage img;
   img = loadImage("bg.png");
   background(img);
@@ -68,7 +56,6 @@ public void setup() {
 }
 
 void draw() {
-  getUserInput();
 }
 
 class Rover {
@@ -101,37 +88,48 @@ class Rover {
   }
 }
 
-public void getUserInput() {
-  int moveX = int(map(cont.getSlider("forward").getValue(), 1, -1, 0, moveMap));
-  int moveY = int(map(cont.getSlider("turn").getValue(), -1, 1, 0, moveMap));
-  int armVel = int(map(cont.getSlider("arm").getValue(), 1, -1, 0, armMap));
-  int brushAccel = int(map(cont.getSlider("brush").getValue(), 1, -1, 0, brushMap));
+void keyPressed() {
+  moveX = 0;
+  moveY = 0;
+  armVel = 0;
+  brushAccel = 0;
 
-  //debounce door button input
-  if (count < 2) {
-    count++;
-  } else if (cont.getButton("door").pressed()) {
-    count = 0;
+  if (key == 'w') {
+    moveX = int(map(moveXMax, 1, -1, 0, moveMap));
+    println(moveX);
+  } else if (key == 's') {
+    moveX = int(map(-moveXMax, 1, -1, 0, moveMap));
+    println(moveX);
+  } else if (key == 'a') {
+    moveY = int(map(turnMax, 1, -1, 0, moveMap));
+    println(moveY);
+  } else if (key == 'd') {
+    moveY = int(map(-turnMax, 1, -1, 0, moveMap));
+    println(moveY);
+  } else if (key == 'e') {
+    armVel = int(map(armMax, 1, -1, 0, moveMap));
+    println(armVel);
+  } else if (key == 'q') {
+    armVel = int(map(-armMax, 1, -1, 0, moveMap));
+    println(armVel);
+  } else if (key == 'r') {
+    brushAccel = int(map(brushMax, 1, -1, 0, moveMap));
+    println(brushAccel);
+  } else if (key == 'f') {
+    brushAccel = int(map(-brushMax, 1, -1, 0, moveMap));
+    println(brushAccel);
+  } else if (key == 't') {
     if (door == 0) {
       door = 255;
+      println(door);
     } else {
       door = 0;
+      println(door);
     }
+  } else {
+
   }
 
-  //Deadzones
-  if (abs(moveX - 127) <= moveXDeadZone) {
-    moveX = 127;
-  }
-  if (abs(moveY - 127) <= moveYDeadZone) {
-    moveY = 127;
-  }
-  if (abs(armVel - 127) <= armVelDeadZone) {
-    armVel = 127;
-  }
-  if (abs(brushAccel - 127) <= brushAccelDeadZone) {
-    brushAccel = 127;
-  }
   rover.update(moveX, moveY, armVel, brushAccel, door);
 }
 

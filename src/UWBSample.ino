@@ -17,20 +17,20 @@
 #define BLUETOOTH_TAIL 254
 
 //Drive motor controller
-#define MOTOR_L_FORW_EN 46
-#define MOTOR_L_BACK_EN 47
-#define MOTOR_L_PWM 44
-#define MOTOR_R_FORW_EN 48
-#define MOTOR_R_BACK_EN 49
-#define MOTOR_R_PWM 45
+#define MOTOR_L_FORW_EN 26
+#define MOTOR_L_BACK_EN 27
+#define MOTOR_L_PWM 6
+#define MOTOR_R_FORW_EN 24
+#define MOTOR_R_BACK_EN 46
+#define MOTOR_R_PWM 5
 
 //Door and brush motor controller
-#define MOTOR_D_FORW_EN 46
-#define MOTOR_D_BACK_EN 47
-#define MOTOR_D_PWM 44
-#define MOTOR_B_FORW_EN 48
-#define MOTOR_B_BACK_EN 49
-#define MOTOR_B_PWM 45
+#define MOTOR_D_FORW_EN 38
+#define MOTOR_D_BACK_EN 39
+#define MOTOR_D_PWM 9
+#define MOTOR_B_FORW_EN 40
+#define MOTOR_B_BACK_EN 41
+#define MOTOR_B_PWM 8
 
 //Talon SR arm motor controller
 #define NEVEREST_PWM 2
@@ -48,6 +48,7 @@ int bluetoothBuffer[bufferSize];
 int bluetoothBufferCursor = 0;
 byte data;
 int forward, back, turn, arm, door, brush;
+int doorPrev;
 int left, right;
 byte sendByte;
 int xM, xCm, yM, yCm;
@@ -72,6 +73,7 @@ int AnchorID[] = {2820,2819,2816,2821};
 /*******************************************************************************/
 
 void setup() {
+  doorLock.attach(SERVO_PIN);
 
   pinMode(MOTOR_R_FORW_EN, OUTPUT);
   pinMode(MOTOR_R_BACK_EN, OUTPUT);
@@ -295,6 +297,7 @@ void bluetoothDecode() {
     } else if (bluetoothBuffer[tmpCursor] == 174 && bluetoothBuffer[tmpCursor] == bluetoothBuffer[tmpCursor + 1]) {
       //door position open: 0x00 and close: 0xFF
       data = bluetoothBuffer[tmpCursor + 2];
+      doorPrev = door;
       if (data == 0) {
         door = false;
       } else if (data == 255) {
@@ -387,4 +390,31 @@ void serialEvent3() {
     digitalWrite(MOTOR_B_BACK_EN, HIGH);
   }
   analogWrite(MOTOR_B_PWM, arm);
+
+  if (doorPrev != door) {
+    //possible read position then toggle?
+    if (door = true) {
+      //unlock servo then move door
+      doorLock.write(180);
+
+      //set direction
+      digitalWrite(MOTOR_B_FORW_EN, LOW);
+      digitalWrite(MOTOR_B_BACK_EN, HIGH);
+
+      analogWrite(MOTOR_D_PWM, 30);
+      delay(300);
+      analogWrite(MOTOR_D_PWM, 0);
+    } else {
+      //set direction
+      digitalWrite(MOTOR_B_FORW_EN, HIGH);
+      digitalWrite(MOTOR_B_BACK_EN, LOW);
+
+      analogWrite(MOTOR_D_PWM, 30);
+      delay(300);
+      analogWrite(MOTOR_D_PWM, 0);
+
+      //move door then lock
+      doorLock.write(0);
+    }
+  }
 }

@@ -41,7 +41,7 @@ public void setup() {
   frameRate(120);
 
   printArray(Serial.list());
-  serialPort = new Serial(this, Serial.list()[1], 9600);
+  serialPort = new Serial(this, Serial.list()[2], 9600);
   //serialPort.bufferUntil(254);
   println("Serial connected");
 

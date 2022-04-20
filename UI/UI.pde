@@ -42,7 +42,7 @@ public void setup() {
   frameRate(120);
 
   printArray(Serial.list());
-  serialPort = new Serial(this, Serial.list()[1], 9600);
+  serialPort = new Serial(this, Serial.list()[2], 9600);
   //serialPort.bufferUntil(254);
   println("Serial connected");
 
@@ -84,7 +84,10 @@ class Rover {
     int sendByte = 0;
 
     for (sendByte = 0; sendByte < 19; sendByte = sendByte + 1) {
+      //println("test1");
       serialPort.write(coord[sendByte]);
+      //serialPort.write(0x00);
+      //println(coord[sendByte]);
     }
   }
 
@@ -104,7 +107,7 @@ class Rover {
 public void getUserInput() {
   int moveX = int(map(cont.getSlider("forward").getValue(), 1, -1, 0, moveMap));
   int moveY = int(map(cont.getSlider("turn").getValue(), -1, 1, 0, moveMap));
-  int armVel = int(map(cont.getSlider("arm").getValue(), 1, -1, 0, armMap));
+  int armVel = int(map(cont.getSlider("arm").getValue(), -1, 1, 0, armMap));
   int brushAccel = int(map(cont.getSlider("brush").getValue(), 1, -1, 0, brushMap));
 
   //debounce door button input
@@ -132,7 +135,9 @@ public void getUserInput() {
   if (abs(brushAccel - 127) <= brushAccelDeadZone) {
     brushAccel = 127;
   }
+  println(moveX);
   rover.update(moveX, moveY, armVel, brushAccel, door);
+  println("test");
 }
 
 void serialEvent(Serial serialPort) {

@@ -12,6 +12,7 @@
 -IC:/Users/lishu/.platformio/packages/toolchain-atmelavr/lib/gcc/avr/7.3.0/include
 -IC:/Users/lishu/.platformio/packages/toolchain-atmelavr/lib/gcc/avr/7.3.0/include-fixed
 -IC:/Users/lishu/.platformio/packages/toolchain-atmelavr/avr/include
+-IC:/Users/lishu/.platformio/packages/tool-unity
 -DPLATFORMIO=50205
 -DARDUINO_AVR_MEGA2560
 -DF_CPU=16000000L

@@ -17,16 +17,16 @@
 #define BLUETOOTH_TAIL 254
 
 //Drive motor controller
-#define MOTOR_L_FORW_EN 26
-#define MOTOR_L_BACK_EN 27
+#define MOTOR_L_FORW_EN 27
+#define MOTOR_L_BACK_EN 26
 #define MOTOR_L_PWM 6
-#define MOTOR_R_FORW_EN 24
-#define MOTOR_R_BACK_EN 46
+#define MOTOR_R_FORW_EN 25
+#define MOTOR_R_BACK_EN 24
 #define MOTOR_R_PWM 5
 
 //Door and brush motor controller
-#define MOTOR_D_FORW_EN 38
-#define MOTOR_D_BACK_EN 39
+#define MOTOR_D_FORW_EN 36
+#define MOTOR_D_BACK_EN 37
 #define MOTOR_D_PWM 9
 #define MOTOR_B_FORW_EN 40
 #define MOTOR_B_BACK_EN 41
@@ -37,7 +37,9 @@
 
 //Door lock servo
 #define SERVO_PIN 30
-Servo doorServo;
+Servo doorLock;
+
+unsigned long time_now = 0;
 
 #define bufferSize      300
 byte uartBuffer[bufferSize];
@@ -104,6 +106,7 @@ void setup() {
 
   Serial.println("Ready");
   Serial.flush();
+  doorLock.write(0);
 }
 
 void loop() {
@@ -278,6 +281,7 @@ void bluetoothDecode() {
     }
   }
   int i = 0;
+  Serial.print("decode");
   while (bluetoothBuffer[tmpCursor] != BLUETOOTH_TAIL && bluetoothBuffer[tmpCursor + 1] != BLUETOOTH_TAIL) {
     i++;
     //checks for the correct command byte and extracts command data from payload
@@ -343,9 +347,11 @@ void serialEvent2() {
 
 //Bluetooth serial event
 void serialEvent3() {
+  Serial.print("a");
   if (Serial3.available() > 1) {
     bluetoothBuffer[bluetoothBufferCursor] = Serial3.read();
     if(bluetoothBuffer[bluetoothBufferCursor] == 254 && bluetoothBufferCursor > 0) {
+      Serial.print("bluetooth");
       bluetoothDecode();
       bluetoothBufferCursor = 0;
       memset(bluetoothBuffer, 0, sizeof(bluetoothBuffer));
@@ -361,8 +367,8 @@ void serialEvent3() {
   //Talon SR PWM 0, 191 and 255 turns off motor, 128 is max speed clockwise, 254 max anticlockwise
   analogWrite(NEVEREST_PWM, arm);
 
-  left = forward + 1/2 * turn;
-  right = forward - 1/2 * turn;
+  left = forward + 0.8 * turn;
+  right = forward - 0.8 * turn;
 
   if (left >= 0) {
     digitalWrite(MOTOR_L_FORW_EN, HIGH);
@@ -371,7 +377,7 @@ void serialEvent3() {
     digitalWrite(MOTOR_L_FORW_EN, LOW);
     digitalWrite(MOTOR_L_BACK_EN, HIGH);
   }
-  analogWrite(MOTOR_L_PWM, left);
+  analogWrite(MOTOR_L_PWM, abs(left));
 
   if (right >= 0) {
     digitalWrite(MOTOR_R_FORW_EN, HIGH);
@@ -380,7 +386,7 @@ void serialEvent3() {
     digitalWrite(MOTOR_R_FORW_EN, LOW);
     digitalWrite(MOTOR_R_BACK_EN, HIGH);
   }
-  analogWrite(MOTOR_R_PWM, right);
+  analogWrite(MOTOR_R_PWM, abs(right));
 
   if (brush >= 0) {
     digitalWrite(MOTOR_B_FORW_EN, HIGH);
@@ -389,32 +395,41 @@ void serialEvent3() {
     digitalWrite(MOTOR_B_FORW_EN, LOW);
     digitalWrite(MOTOR_B_BACK_EN, HIGH);
   }
-  analogWrite(MOTOR_B_PWM, arm);
+  analogWrite(MOTOR_B_PWM, abs(brush));
 
   if (doorPrev != door) {
     //possible read position then toggle?
-    if (door = true) {
+    if (door == true) {
       //unlock servo then move door
-      doorLock.write(180);
-
+      doorLock.write(90);
+      delay(50);
       //set direction
-      digitalWrite(MOTOR_B_FORW_EN, LOW);
-      digitalWrite(MOTOR_B_BACK_EN, HIGH);
+      digitalWrite(MOTOR_D_FORW_EN, LOW);
+      digitalWrite(MOTOR_D_BACK_EN, HIGH);
 
-      analogWrite(MOTOR_D_PWM, 30);
-      delay(300);
-      analogWrite(MOTOR_D_PWM, 0);
+      analogWrite(MOTOR_D_PWM, 130);
+      delay(12);
+      analogWrite(MOTOR_D_PWM, 60);
     } else {
       //set direction
-      digitalWrite(MOTOR_B_FORW_EN, HIGH);
-      digitalWrite(MOTOR_B_BACK_EN, LOW);
+      doorLock.write(90);
+      digitalWrite(MOTOR_D_FORW_EN, HIGH);
+      digitalWrite(MOTOR_D_BACK_EN, LOW);
 
-      analogWrite(MOTOR_D_PWM, 30);
-      delay(300);
+      analogWrite(MOTOR_D_PWM, 170);
+      delay(9);
       analogWrite(MOTOR_D_PWM, 0);
+      //delay(800);
 
+      time_now = millis();
+      while(millis() < time_now + 100){
+        //wait approx. [period] ms
+      }
       //move door then lock
       doorLock.write(0);
     }
+  } else {
+
   }
+  doorLock.write(0);
 }

@@ -93,8 +93,8 @@ class Rover {
 
   void drawRover(float UWBxPos, float UWByPos) {
     //map UWB data to pixel coords
-    xpos = map(UWBxPos, 0, 10, 0, 983);
-    ypos = map(UWByPos, 0, 10, 0, 906);
+    xpos = map(UWBxPos, 2, 5, 0, 983);
+    ypos = map(UWByPos, 5, 8, 906, 0);
 
     PImage img;
     img = loadImage("bg.png");

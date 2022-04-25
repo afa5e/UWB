@@ -42,7 +42,7 @@ public void setup() {
   frameRate(120);
 
   printArray(Serial.list());
-  serialPort = new Serial(this, Serial.list()[2], 9600);
+  serialPort = new Serial(this, Serial.list()[0], 9600);
   //serialPort.bufferUntil(254);
   println("Serial connected");
 
@@ -87,7 +87,7 @@ class Rover {
       //println("test1");
       serialPort.write(coord[sendByte]);
       //serialPort.write(0x00);
-      //println(coord[sendByte]);
+      println(coord[sendByte]);
     }
   }
 
@@ -135,7 +135,6 @@ public void getUserInput() {
   if (abs(brushAccel - 127) <= brushAccelDeadZone) {
     brushAccel = 127;
   }
-  println(moveX);
   rover.update(moveX, moveY, armVel, brushAccel, door);
   println("test");
 }

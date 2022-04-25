@@ -367,8 +367,8 @@ void serialEvent3() {
   //Talon SR PWM 0, 191 and 255 turns off motor, 128 is max speed clockwise, 254 max anticlockwise
   analogWrite(NEVEREST_PWM, arm);
 
-  left = forward + 0.8 * turn;
-  right = forward - 0.8 * turn;
+  left = forward + 2 * turn;
+  right = forward - 2 * turn;
 
   if (left >= 0) {
     digitalWrite(MOTOR_L_FORW_EN, HIGH);
